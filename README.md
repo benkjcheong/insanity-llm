@@ -6,10 +6,10 @@ This repository outlines a simple workflow for creating a Hugging Face dataset f
 
 ## Step 1: Prepare and Upload the Dataset
 
-- Place all `.txt` files inside a folder named `hippie_manifestos`.
-- Follow the instructions in `convert.py` to load and convert the text files into a Hugging Face `Dataset`.
+- Place all `.txt` files inside a folder named `dataset`. Using https://manifestos.net/titles/
+- Follow the instructions in `1sortdata.py` to load and convert the text files into a Hugging Face `Dataset`.
 - Authenticate with the Hugging Face Hub using your personal access token.
-- Push the dataset to your Hugging Face account (e.g. `your_username/hippie_manifestos`).
+- Push the dataset to your Hugging Face account (e.g. `bcben/manifestos`).
 
 ---
 
@@ -39,6 +39,7 @@ See the example prompt in the notebook:
 
 ## Reference
 
-- Dataset: `your_username/hippie_manifestos`
+- Dataset: `bcben/manifestos`
 - Model: `mistralai/Mistral-7B-Instruct-v0.3`
+- Final Model: `bcben/manifestos-model`
 - Notebook: `Mistral_v0.3_(7B)-Conversational.ipynb`
