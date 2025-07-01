@@ -1,7 +1,15 @@
-datasets
-huggingface_hub
 python-dotenv
-PyPDF2
-striprtf
+huggingface_hub
+datasets
 pdfplumber
+striprtf
 pymupdf
+
+# Model + inference related
+torch
+transformers
+peft
+accelerate
+bitsandbytes
+sentencepiece
+safetensors
