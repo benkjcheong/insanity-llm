@@ -2,3 +2,6 @@ datasets
 huggingface_hub
 python-dotenv
 PyPDF2
+striprtf
+pdfplumber
+pymupdf
