@@ -1,15 +1,4 @@
-python-dotenv
-huggingface_hub
-datasets
-pdfplumber
-striprtf
-pymupdf
-
-# Model + inference related
-torch
 transformers
-peft
-accelerate
-bitsandbytes
+datasets
+torch
 sentencepiece
-safetensors
