@@ -4,6 +4,8 @@ Use virtual environment & Nvidia EC2
 Assumes scp of app.py into Nvidia EC2 initially before bash script is run
 
 Finetuning:
+In the future, upload small datasets via scp to EC2 where 2createmodel.py is run with Nvidia EC2.
+
 - *Memoirs of My Nervous Illness* – **Daniel Paul Schreber**
 - *To Have Done with the Judgment of God* – **Antonin Artaud**
 - *Poems from the Tower Years* – **Friedrich Hölderlin**
