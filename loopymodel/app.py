@@ -1,9 +1,9 @@
 from llama_cpp import Llama
 
 llm = Llama(
-    model_path="models/mythomax-l2-13b.Q4_K_M.gguf",
-    n_ctx=1024,            # Lower context window = less VRAM pressure
-    n_gpu_layers=60,       # Offload 60 layers to GPU (safe for T4 and 13B)
+    model_path="models/phi-2.Q4_K_M.gguf",
+    n_ctx=1024,
+    n_gpu_layers=60,
     verbose=False
 )
 
