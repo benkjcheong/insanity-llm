@@ -1,0 +1,1 @@
+Dead doesn't work b/c it uses llama-cpp which requires high level of set-up; Alive would work b/c it uses unsloth and everything else which distills the issue; Can deploy on Nvidia GPU for ease of use
