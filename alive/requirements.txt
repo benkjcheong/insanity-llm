@@ -1,0 +1,14 @@
+# Core libraries for Transformers and PyTorch
+torch>=2.0.0
+transformers>=4.40.0
+
+# Required for 4-bit quantization support
+accelerate>=0.26.0
+bitsandbytes>=0.41.3
+
+# Optional but helpful for memory-efficient model loading and CUDA support
+xformers>=0.0.25
+scipy
+
+# Ensures compatibility with newer models and tokenizer logic
+sentencepiece
