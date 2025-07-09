@@ -1,33 +1,22 @@
-FROM nvidia/cuda:12.2.0-devel-ubuntu22.04
+FROM nvidia/cuda:12.2.0-runtime-ubuntu22.04
 
-# Install build tools and dependencies
+# 1. Install Python and minimal dependencies
 RUN apt-get update && apt-get install -y \
-    git build-essential cmake curl wget python3 python3-pip \
-    libcurl4-openssl-dev libopenblas-dev ninja-build && \
+    python3 python3-pip curl wget && \
     rm -rf /var/lib/apt/lists/*
 
-# Set environment flags for CUDA build
-ENV CMAKE_ARGS="-DGGML_CUDA=on"
-
-# Install llama-cpp-python with CUDA support
+# 2. Upgrade pip and install prebuilt GPU-enabled llama-cpp-python
 RUN pip3 install --upgrade pip && \
-    pip3 install llama-cpp-python
+    pip3 install llama-cpp-python -v
 
-# 3. Clone llama.cpp
-RUN git clone https://github.com/ggerganov/llama.cpp /llama.cpp && \
-    cd /llama.cpp && mkdir build && cd build && \
-    cmake .. -DGGML_CUDA=on && cmake --build . --config Release -- -j$(nproc)
-
-# 4. Create app working directory
+# 3. Create app working directory and copy your app
 WORKDIR /app
+COPY app.py .
 
-# 5. Copy your application script
-COPY app.py /app/
-
-# 6. Download Phi-2 GGUF model
+# 4. (Optional) Download Phi-2 GGUF model into container
 RUN mkdir -p /app/models && \
     wget -O /app/models/phi-2.Q4_K_M.gguf \
     https://huggingface.co/TheBloke/phi-2-GGUF/resolve/main/phi-2.Q4_K_M.gguf
 
-# 7. Run your app
+# 5. Run your Python app
 CMD ["python3", "app.py"]

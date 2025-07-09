@@ -1,8 +1,9 @@
 Loopymodel:
 https://huggingface.co/TheBloke/MythoMax-L2-13B-GGUF/blob/main/mythomax-l2-13b.Q4_K_M.gguf
 Use virtual environment & Nvidia EC2
-Assumes scp of app.py into Nvidia EC2 initially before bash script is run
-Requires high CPU & GPU usage - did not implement successfully
+Assumes scp of app.py into Nvidia EC2 initially before bash script is run; Requires high CPU & GPU usage
+git clone https://github.com/benkjcheong/insanity-llm
+I'm not patient enough; "pip3 install llama-cpp-python" takes too long
 
 Finetuning:
 In the future, upload small datasets via scp to EC2 where 2createmodel.py is run with Nvidia EC2.
