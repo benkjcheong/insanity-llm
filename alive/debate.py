@@ -1,9 +1,10 @@
 import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoTokenizer, AutoModelForCausalLM, TextIteratorStreamer
+import threading
 
-# Load model and tokenizer (can be shared or different)
 MODEL_NAME = "unsloth/mistral-7b-instruct-v0.3-bnb-4bit"
 
+# Load tokenizer and model
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 model = AutoModelForCausalLM.from_pretrained(
     MODEL_NAME,
@@ -12,56 +13,73 @@ model = AutoModelForCausalLM.from_pretrained(
     torch_dtype=torch.float16
 )
 
-def generate_response(prompt: str, max_new_tokens: int = 200) -> str:
+def generate_streamed_response(prompt: str, temperature=0.7, top_p=0.95, max_new_tokens=300) -> str:
     inputs = tokenizer(prompt, return_tensors="pt").to("cuda")
-    outputs = model.generate(
-        **inputs,
+    streamer = TextIteratorStreamer(tokenizer, skip_prompt=True, skip_special_tokens=True)
+
+    thread = threading.Thread(target=model.generate, kwargs=dict(
+        input_ids=inputs["input_ids"],
+        attention_mask=inputs["attention_mask"],
         max_new_tokens=max_new_tokens,
+        temperature=temperature,
+        top_p=top_p,
         do_sample=True,
-        temperature=0.7,
-        top_p=0.9,
-        pad_token_id=tokenizer.eos_token_id,
-    )
-    return tokenizer.decode(outputs[0], skip_special_tokens=True).strip()
+        repetition_penalty=1.1,
+        pad_token_id=tokenizer.pad_token_id,
+        eos_token_id=tokenizer.eos_token_id,
+        streamer=streamer
+    ))
+    thread.start()
 
-def clean_response(full_response: str, prompt: str) -> str:
-    return full_response.replace(prompt.strip(), "").strip()
+    output = ""
+    for token in streamer:
+        print(token, end="", flush=True)
+        output += token
+    print()
+    return output.strip()
 
-def agents_agree(statement: str) -> bool:
-    agreement_markers = ["i agree", "you are right", "that makes sense", "we are aligned"]
-    return any(phrase in statement.lower() for phrase in agreement_markers)
+def build_prompt(role_instruction: str, history: list[str], topic: str, speaker: str) -> str:
+    recent_history = history[-6:] if len(history) > 6 else history
+    dialogue = "\n".join(recent_history + [f"{speaker}: Please challenge the previous statement."])
+    return f"{role_instruction}\nDebate Topic: {topic}\n\n{dialogue}"
 
-def debate(prompt: str, max_rounds: int = 10):
+def debate(topic: str):
     history = []
-    system_prefix_a = "You are Agent A. Be logical and assertive.\n"
-    system_prefix_b = "You are Agent B. Be critical but open-minded.\n"
+    last_line = topic
+    turn_count = 0
 
-    last_statement = prompt
-    print(f"🎯 Debate Topic: {prompt}\n")
+    # Conflict-focused instructions
+    agent_a_instruction = (
+        "You are Agent A. You are confident, logical, and combative.\n"
+        "You are debating Agent B. Your goal is to find flaws in their logic and rebut their claims.\n"
+        "Never agree outright unless absolutely necessary. Start arguments, challenge assumptions, and stay on topic."
+    )
 
-    for round_num in range(max_rounds):
-        # Agent A responds
-        input_a = system_prefix_a + "\n".join(history + [f"Agent B: {last_statement}", "Agent A:"])
-        response_a = clean_response(generate_response(input_a), input_a)
-        print(f"🅰️ A: {response_a}")
+    agent_b_instruction = (
+        "You are Agent B. You are skeptical, sharp, and aggressive.\n"
+        "You are debating Agent A. Your job is to dismantle Agent A’s points and expose logical weaknesses.\n"
+        "Avoid concession unless their logic is flawless. Contradict constructively and critically."
+    )
+
+    print(f"Debate Topic: {topic}\n")
+
+    while True:
+        turn_count += 1
+        temp = 0.7 + (0.01 * (turn_count // 10))  # gradually add variation over time
+
+        # Agent A turn
+        print("Agent A: ", end="", flush=True)
+        prompt_a = build_prompt(agent_a_instruction, history + [f"Agent B: {last_line}"], topic, speaker="Agent A")
+        response_a = generate_streamed_response(prompt_a, temperature=temp)
         history.append(f"Agent A: {response_a}")
-        if agents_agree(response_a):
-            print("\n✅ Agent A agrees — debate concluded.")
-            return
 
-        # Agent B responds
-        input_b = system_prefix_b + "\n".join(history + ["Agent B:"])
-        response_b = clean_response(generate_response(input_b), input_b)
-        print(f"🅱️ B: {response_b}")
+        # Agent B turn
+        print("Agent B: ", end="", flush=True)
+        prompt_b = build_prompt(agent_b_instruction, history, topic, speaker="Agent B")
+        response_b = generate_streamed_response(prompt_b, temperature=temp)
         history.append(f"Agent B: {response_b}")
-        if agents_agree(response_b):
-            print("\n✅ Agent B agrees — debate concluded.")
-            return
 
-        last_statement = response_b
-
-    print("\n❌ Max rounds reached — no agreement.")
+        last_line = response_b
 
 if __name__ == "__main__":
-    initial_prompt = "Should artificial intelligence be granted legal personhood?"
-    debate(initial_prompt, max_rounds=8)
+    debate("Should illegal immigration be allowed?")
